@@ -3,6 +3,7 @@
     style="width:100%;height:100%;" 
     canvas-id="firstCanvas" 
     bindtouchstart="canvasStart" 
-    bindtouchmove="canvasMove">
+    bindtouchmove="canvasMove" 
+    bindtouchend="canvasEnd">
   </canvas>
 </view>
