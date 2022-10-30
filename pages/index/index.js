@@ -1,12 +1,4 @@
-// //index.js贪吃蛇主程序
-// //获取应用实例
-// var app = getApp()
-// //控制蛇头当前移动的位置
-// var l = 0;
-// var t = 0;
-// //蛇头的大小
-// var w = 10;
-// var h = 10;
+//index.js贪吃蛇主程序
 
 //手指的落点坐标
 var startX = 0;
@@ -20,24 +12,24 @@ var moveY = 0;
 var X = 0;
 var Y = 0;
 
-// //蛇头移动的方向
-// var direction = null;
-// var snakeDirection = "right";
-// //窗口的宽度和高度
-// var windowWidth = 0;
-// var windowHeight = 0;
+// 蛇头坐标，注意大小写区别，将蛇抽象为对象
+var snakeHead = {
+  x:0,
+  y:0,
+  // 颜色使用十六进制写法不要用red，编译器问题
+  color:"#ff0000",
+  w:20,
+  h:20
+};
 
-// //存放身体的位置信息
-// var snakeBodys = [];
+//鼠标移动的方向
+var direction = null;
 
-// //存放食物的位置信息
-// var foods = [];
+//蛇头移动的方向
+var snakeDirection = "right";
 
-// //蛇头对象
-// var snakeHead = {};
-
-// //是否删除蛇的身体
-// var removeBodyBol = true;
+//蛇的身体对象（数组）
+var snakeBodys = [];
 
 Page({
   canvasStart:function (e){
@@ -51,198 +43,89 @@ Page({
     Y = moveY - startY;
 
     if ( Math.abs(X) > Math.abs(Y) && X > 0 ) {
-      console.log("right");
-        // direction = "right";
+      direction = "right";
     }
     else if ( Math.abs(X) > Math.abs(Y) && X < 0 ) {
-      console.log("left");  
-      // direction = "left";
+      direction = "left";
     }
     else if ( Math.abs(Y) > Math.abs(X) && Y > 0) {
-      console.log("bottom");  
-      // direction = "bottom";
+      direction = "bottom";
     }
     else if ( Math.abs(Y) > Math.abs(X) && Y < 0 ) {
-      console.log("top");  
-      // direction = "top";
+      direction = "top";
     }
   },
-})
-//   canvasEnd:function (e){
-//     switch (direction){
-//           case "left":
-//             if(snakeDirection != "right"){
-//               snakeDirection  = direction;
-//             }
-            
-//             break;
-//           case "right":
-//             if(snakeDirection != "left"){
-//               snakeDirection  = direction;
-//             }
-//             break;
-//           case "top":
-//             if(snakeDirection != "bottom"){
-//               snakeDirection  = direction;
-//             }
-//             break;
-//           case "bottom":
-//             if(snakeDirection != "top"){
-//               snakeDirection  = direction;
-//             }
-//             break;
-//       }
-//     console.log(snakeDirection);
-//   },
-//   onLoad: function () {
+  canvasEnd:function (e){ 
+    snakeDirection  = direction;
+  },
+  onReady: function () {
+    //使用wx.createContext获取绘图上下文context
+    var context = wx.createContext();
 
-//     //随机函数
-//     function rand(min,max){
-//       return parseInt(Math.random()*(max-min)+min);
-//     }
-//     //碰撞函数
-//     function collide(obj1,obj2){
-      
-//       var l1 = obj1.x;
-//       var r1 = l1+obj1.w;
-//       var t1 = obj1.y;
-//       var b1 = t1+obj1.h;
-      
-//       var l2 = obj2.x;
-//       var r2 = l2+obj2.w;
-//       var t2 = obj2.y;
-//       var b2 = t2+obj2.h;
-      
-//       if (r1>l2&&l1<r2&&b1>t2&&t1<b2){
-//         return true;
-//       }else{
-//         return false;
-//       }
-//     }
+    // 帧数
+    var frameNum = 0;
 
-//     //食物的构造函数
-//     function Food(){
-//       this.x = rand(0,windowWidth-10);
-//       this.y = rand(0,windowHeight-10);
-//       this.w = 8;
-//       this.h = 8;
-//       this.color = "rgb("+rand(0,255)+","+rand(0,255)+","+rand(0,255)+")";
-//       this.resetPos = function (){
-//         this.x = rand(0,windowWidth-10);
-//         this.y = rand(0,windowHeight-10);
-//       }
-//     }
+    // 绘制函数
+    function draw(obj){
+      context.setFillStyle(obj.color);
+      context.beginPath();
+      context.rect(obj.x,obj.y,obj.w,obj.h);
+      context.closePath();
+      context.fill();
+    }
 
-//     //使用wx.createContext获取绘图上下文context
-//     var context = wx.createContext();
-    
-//     var frameTime = 0;
+    function animate(){
+      frameNum++;
+      // 根据帧率调整速度，这里可以实现随着时间加长速度变快的逻辑
+      if (frameNum % 20 == 0){
+        // 添加一个身体对象
+        snakeBodys.push({
+          x:snakeHead.x,
+          y:snakeHead.y,
+          w:20,
+          h:20,
+          color: "#00ff00"
+        });
 
-//     function move(){
-//       switch (snakeDirection){
-//           case "left":
-//             l -= w;
-//             break;
-//           case "right":
-//             l += w;
-//             break;
-//           case "top":
-//             t -= h;
-//             break;
-//           case "bottom":
-//             t += h;
-//             break;
-//       }
-//     }
-    
-//     function animate(){
-//       frameTime++;
-//       if (frameTime%20==0){
+        switch (snakeDirection){
+          case "left":
+            snakeHead.x -= snakeHead.w;
+            break;
+          case "right":
+            snakeHead.x += snakeHead.w;
+            break;
+          case "top":
+            snakeHead.y -= snakeHead.h;
+            break;
+          case "bottom":
+            snakeHead.y += snakeHead.h;
+            break;
+        }
+
+        //如果超过4截身体就删除最老的那一截
+        if (snakeBodys.length > 4){
+          snakeBodys.shift();
+        }
         
-//         //把上一个位置存入身体数组
-//         snakeBodys.push({
-//           x:l,
-//           y:t,
-//           w:w,
-//           h:h
-//         });
+      }
+      
+      // 绘制蛇头
+      draw(snakeHead)
 
-//         //控制舌头的位置移动
-//         move();
+      // 绘制蛇身
+      for (var i=0; i<snakeBodys.length; i++){
+        var snakeBody = snakeBodys[snakeBodys.length-i-1];
+        draw(snakeBody)
+      }
 
-//         //修改蛇头对象属性
-//         snakeHead = {
-//           x:l,
-//           y:t,
-//           w:w,
-//           h:h
-//         }
-
-//         //绘制食物
-//         for (var i=0; i<foods.length; i++){
-//           var food = foods[i];
-//           context.setFillStyle(food.color);
-//           context.beginPath();
-//           context.rect(food.x,food.y,food.w,food.h);
-//           context.closePath();
-//           context.fill();
-
-//           //食物跟蛇头碰撞检测
-//           if (collide(food,snakeHead)){
-//             console.log('装上了');
-//             food.resetPos();
-//             removeBodyBol = false;
-//           }
-//         }
-
-//         //绘制蛇头
-//         context.setFillStyle("#ff00ff");
-//         context.beginPath();
-//         context.rect(l,t,w,h);
-//         context.closePath();
-//         context.fill();
-
-//         //如果超过4截身体就删除最老的那一截
-//         if (snakeBodys.length > 6){
-//           if (removeBodyBol){
-//             snakeBodys.shift();
-//           }else{
-//             removeBodyBol = true;
-//           }
-//         }
-
-//         //绘制身体
-//         for (var i=0; i<snakeBodys.length; i++){
-//           var snakeBodyObj = snakeBodys[snakeBodys.length-i-1];
-//           context.setFillStyle("#000000");
-//           context.beginPath();
-//           context.rect(snakeBodyObj.x,snakeBodyObj.y,snakeBodyObj.w,snakeBodyObj.h);
-//           context.closePath();
-//           context.fill();
-//         }
-
-//         wx.drawCanvas({
-//           canvasId: "firstCanvas",
-//           actions: context.getActions()
-//         });
-//       }
-
-//       requestAnimationFrame(animate);
-//     }
-//     //获取页面的宽度
-//     wx.getSystemInfo({
-//       success: function(res) {
-
-//         windowWidth = res.windowWidth;
-//         windowHeight = res.windowHeight;
-
-//         //在页面中随机初始化创建30个食物
-//         for (var i=0; i<30; i++){
-//           var foodObj = new Food();
-//           foods.push(foodObj);
-//         }
-//         animate();
-//       }
-//     })
-//   }
-// })
+      wx.drawCanvas({
+        canvasId: "snakeCanvas",
+        actions: context.getActions()
+      });
+      // 微信小程序已不支持requestAnimationFrame,可使用setTimeoust代替使用,Leo唐唐备注
+      // requestAnimationFrame(animate); 
+      setTimeout(animate);
+    }
+    animate();
+  }
+})
