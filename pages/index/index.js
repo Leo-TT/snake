@@ -31,6 +31,16 @@ var snakeDirection = "right";
 //蛇的身体对象（数组）
 var snakeBodys = [];
 
+//食物对象（数组）
+var foods = [];
+
+// 手机宽高
+var windowWidth = 0;
+var windowHeight = 0;
+
+// 是否移除碰撞块
+var collideBol = true;
+
 Page({
   canvasStart:function (e){
     startX = e.touches[0].x;
@@ -74,6 +84,25 @@ Page({
       context.fill();
     }
 
+    // 碰撞函数
+    function collide(obj1, obj2){
+      var l1 = obj1.x;
+      var r1 = l1+obj1.w;
+      var t1 = obj1.y;
+      var b1 = t1+obj1.h;
+
+      var l2 = obj2.x;
+      var r2 = l2+obj2.w;
+      var t2 = obj2.y;
+      var b2 = t2+obj2.h;
+
+      if (r1 > l2 && l1 < r2 && b1 > t2 && t1 < b2){
+        return true;
+      }else{
+        return false;
+      }
+    }
+
     function animate(){
       frameNum++;
       // 根据帧率调整速度，这里可以实现随着时间加长速度变快的逻辑
@@ -104,18 +133,34 @@ Page({
 
         //如果超过4截身体就删除最老的那一截
         if (snakeBodys.length > 4){
-          snakeBodys.shift();
+          if (collideBol){
+            snakeBodys.shift();
+          }else{
+            collideBol = true;
+          }
         }
         
       }
       
       // 绘制蛇头
-      draw(snakeHead)
+      draw(snakeHead);
 
       // 绘制蛇身
       for (var i=0; i<snakeBodys.length; i++){
         var snakeBody = snakeBodys[snakeBodys.length-i-1];
-        draw(snakeBody)
+        draw(snakeBody);
+      }
+
+      // 绘制食物
+      for (var i=0; i<foods.length; i++){
+        var foodObj = foods[i];
+        draw(foodObj);
+        // 碰撞判断
+        if (collide(snakeHead,foodObj)){
+          console.log("撞上了");
+          collideBol = false;
+          foodObj.reset();
+        }
       }
 
       wx.drawCanvas({
@@ -126,6 +171,40 @@ Page({
       // requestAnimationFrame(animate); 
       setTimeout(animate);
     }
-    animate();
+    // 范围内随机
+    function rand(min,max){
+      return parseInt(Math.random()*(max-min)+min)
+    }
+    // 食物的构造函数
+    function Food(){
+      this.x = rand(0, windowWidth);
+      this.y = rand(0, windowHeight);
+      var w = rand(10,20);
+      this.w = w;
+      this.h = w;
+      this.color = "rgb("+ rand(0,255) + ","+rand(0,255)+","+rand(0,255)+")";
+
+      
+      // 重置食物的方法
+      this.reset = function (){
+        this.x = rand(0, windowWidth);
+        this.y = rand(0, windowHeight);
+        this.color = "rgb("+ rand(0,255) + ","+rand(0,255)+","+rand(0,255)+")";
+      }
+    }
+    wx.getSystemInfo({
+      success: function(res){
+        windowWidth = res.windowWidth;
+        windowHeight = res.windowHeight;
+
+        for (var i=0; i<20; i++){
+          var foodObj = new Food();
+          foods.push(foodObj);
+        }
+
+        animate();
+      }
+    })
+
   }
 })
